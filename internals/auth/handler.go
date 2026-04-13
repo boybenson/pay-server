@@ -16,16 +16,13 @@ func NewHandler() *Handler {
 
 func (h *Handler) CreateUserHandler(c *gin.Context) {
 	var req CreateUserRequest
-
 	err := c.ShouldBindJSON(&req)
-
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-
 	newUser, err := h.service.CreateUser(req)
 
 	if err != nil {

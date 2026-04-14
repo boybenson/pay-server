@@ -29,6 +29,7 @@ func main() {
 	}
 
 	err = db.AutoMigrate(&auth.User{})
+
 	if err != nil {
 		panic("failed to migrate database")
 	}

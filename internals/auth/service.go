@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/boybenson/pay-server/pkg"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -22,6 +23,8 @@ func (s *Service) CreateUser(body CreateUserRequest) (*User, error) {
 		Email: body.Email,
 		Phone: body.Phone,
 	}
+
+	user.ID = uuid.New().String()
 
 	hashedPassword := pkg.HashPassword(body.Password)
 	user.Password = hashedPassword
@@ -46,16 +49,23 @@ func (s *Service) SignIn(body SignInRequest) (*SignInUser, error) {
 	err := s.db.Where("email = ?", body.Email).First(&user).Error
 
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Incorrect Email Address")
 	}
 
 	if !pkg.CheckPasswordHash(body.Password, user.Password) {
-		return nil, errors.New("incorrect password")
+		return nil, errors.New("Incorrect Password")
 	}
 
-	return &SignInUser{
+	loggedInUser := &SignInUser{
 		Name:  user.Name,
 		Email: user.Email,
 		Phone: user.Phone,
-	}, nil
+	}
+	loggedInUser.Token, err = pkg.GenerateToken(user.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return loggedInUser, nil
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/boybenson/pay-server/internals/auth"
+	"github.com/boybenson/pay-server/internals/payment"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -29,6 +30,7 @@ func main() {
 	}
 
 	err = db.AutoMigrate(&auth.User{})
+	err = db.AutoMigrate(&payment.PaymentCode{})
 
 	if err != nil {
 		panic("failed to migrate database")
@@ -42,9 +44,12 @@ func main() {
 
 	authService := auth.NewService(db)
 	authHandler := auth.NewHandler(authService)
+	paymentService := payment.NewService(db)
+	paymentHandler := payment.NewHandler(paymentService)
 
 	router.POST("/signup", authHandler.CreateUserHandler)
 	router.POST("/signin", authHandler.SignInHandler)
+	router.POST("/payment-codes", paymentHandler.CreatePaymentCodeHandler)
 
 	router.Run()
 }
